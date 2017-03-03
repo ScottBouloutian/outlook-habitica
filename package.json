@@ -1,0 +1,29 @@
+{
+  "name": "outlook-habitica",
+  "version": "1.0.0",
+  "description": "Script to update Habitica with tasks from Outlook",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScottBouloutian/outlook-habitica.git"
+  },
+  "author": "Scott Bouloutian",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ScottBouloutian/outlook-habitica/issues"
+  },
+  "homepage": "https://github.com/ScottBouloutian/outlook-habitica#readme",
+  "dependencies": {
+    "aws-sdk": "^2.22.0",
+    "bluebird": "^3.4.7",
+    "lodash": "^4.17.4",
+    "moment": "^2.17.1",
+    "request": "^2.79.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.16.1",
+    "eslint-config-airbnb-base": "^11.1.0",
+    "eslint-plugin-import": "^2.2.0"
+  }
+}
