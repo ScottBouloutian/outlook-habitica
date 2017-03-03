@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Script to update Habitica with tasks from Outlook",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+      "build": "sh scripts/lambda-build.sh"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ScottBouloutian/outlook-habitica.git"

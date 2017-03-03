@@ -173,36 +173,38 @@ function syncUpdatedTasks(tasks, records) {
         ));
 }
 
-// Get tasks from Outlook
-getTokenInfo().then(() => refreshToken()).then(() => getTasks()).then((tasks) => {
-    // Find tasks that are new or need to be updated in Habitica
-    const outlookIds = tasks.map(task => task.Id);
-    return getDynamoRecords(outlookIds).then((results) => {
-        const newTasks = [];
-        const updatedTasks = [];
-        const records = [];
-        tasks.forEach((task) => {
-            const record = results.find(result => (result.id === task.Id));
-            if (!record) {
-                newTasks.push(task);
-            } else if (moment(record.updated).isBefore(task.LastModifiedDateTime)) {
-                updatedTasks.push(task);
-                records.push(record);
-            }
-        });
+exports.handler = () => {
+    // Get tasks from Outlook
+    getTokenInfo().then(() => refreshToken()).then(() => getTasks()).then((tasks) => {
+        // Find tasks that are new or need to be updated in Habitica
+        const outlookIds = tasks.map(task => task.Id);
+        return getDynamoRecords(outlookIds).then((results) => {
+            const newTasks = [];
+            const updatedTasks = [];
+            const records = [];
+            tasks.forEach((task) => {
+                const record = results.find(result => (result.id === task.Id));
+                if (!record) {
+                    newTasks.push(task);
+                } else if (moment(record.updated).isBefore(task.LastModifiedDateTime)) {
+                    updatedTasks.push(task);
+                    records.push(record);
+                }
+            });
 
-        // Sync tasks to Habitica
-        return Promise.all([
-            syncNewTasks(newTasks),
-            syncUpdatedTasks(updatedTasks, records),
-        ]);
+            // Sync tasks to Habitica
+            return Promise.all([
+                syncNewTasks(newTasks),
+                syncUpdatedTasks(updatedTasks, records),
+            ]);
+        });
+    })
+    .then((results) => {
+        const newTasks = results[0];
+        const updatedTasks = results[1];
+        console.log(`${newTasks.length} tasks added:`);
+        newTasks.forEach(task => console.log(`- ${task.text}`));
+        console.log(`${updatedTasks.length} tasks updated:`);
+        updatedTasks.forEach(task => console.log(`- ${task.text}`));
     });
-})
-.then((results) => {
-    const newTasks = results[0];
-    const updatedTasks = results[1];
-    console.log(`${newTasks.length} tasks added:`);
-    newTasks.forEach(task => console.log(`- ${task.text}`));
-    console.log(`${updatedTasks.length} tasks updated:`);
-    updatedTasks.forEach(task => console.log(`- ${task.text}`));
-});
+};
