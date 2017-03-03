@@ -1,5 +1,4 @@
 const Promise = require('bluebird');
-const fs = require('fs');
 const ld = require('lodash');
 const aws = require('aws-sdk');
 const request = Promise.promisify(require('request'));
@@ -10,7 +9,18 @@ const querystring = require('querystring');
 const client = new aws.DynamoDB.DocumentClient({ region: 'us-east-1' });
 const batchGet = Promise.promisify(client.batchGet, { context: client });
 const batchWrite = Promise.promisify(client.batchWrite, { context: client });
-const tokenInfo = JSON.parse(fs.readFileSync('token.json', 'utf8'));
+const tokenInfo = { };
+const s3 = new aws.S3({ region: 'us-east-1' });
+const putObject = Promise.promisify(s3.putObject, { context: s3 });
+const getObject = Promise.promisify(s3.getObject, { context: s3 });
+
+// Loads the token info from S3
+function getTokenInfo() {
+    return getObject({
+        Bucket: config.s3.bucket,
+        Key: 'token.json',
+    }).then(({ Body }) => ld.assign(tokenInfo, JSON.parse(Body)));
+}
 
 // Attempts to refresh the access token if it is about to expire
 function refreshToken() {
@@ -34,9 +44,13 @@ function refreshToken() {
             ld.assign(tokenInfo, {
                 token: body.access_token,
                 refreshToken: body.refresh_token,
-                expires: moment().add(body.expires_in, 'seconds'),
+                expires: moment().add(body.expires_in, 'seconds').toDate(),
             });
-            fs.writeFileSync('token.json', JSON.stringify(tokenInfo));
+            return putObject({
+                Bucket: config.s3.bucket,
+                Key: 'token.json',
+                Body: JSON.stringify(tokenInfo),
+            });
         });
 }
 
@@ -160,7 +174,7 @@ function syncUpdatedTasks(tasks, records) {
 }
 
 // Get tasks from Outlook
-refreshToken().then(() => getTasks()).then((tasks) => {
+getTokenInfo().then(() => refreshToken()).then(() => getTasks()).then((tasks) => {
     // Find tasks that are new or need to be updated in Habitica
     const outlookIds = tasks.map(({ Id }) => Id);
     return getDynamoRecords(outlookIds).then((results) => {
@@ -183,7 +197,8 @@ refreshToken().then(() => getTasks()).then((tasks) => {
             syncUpdatedTasks(updatedTasks, records),
         ]);
     });
-}).then((results) => {
+})
+.then((results) => {
     const newTasks = results[0];
     const updatedTasks = results[1];
     console.log(`${newTasks.length} tasks added:`);

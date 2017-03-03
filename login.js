@@ -5,8 +5,11 @@ const http = require('http');
 const Promise = require('bluebird');
 const request = Promise.promisify(require('request'));
 const querystring = require('querystring');
-const fs = require('fs');
 const moment = require('moment');
+const aws = require('aws-sdk');
+
+const s3 = new aws.S3({ region: 'us-east-1' });
+const putObject = Promise.promisify(s3.putObject, { context: s3 });
 
 const loginPath = url.format({
     protocol: 'https',
@@ -44,14 +47,17 @@ const server = http.createServer((req, resp) => {
         const { code } = urlObject.query;
         resp.end('Logged in, you may close this window.');
         server.close();
-        getToken(code).then((body) => {
-            fs.writeFileSync('token.json', JSON.stringify({
-                token: body.access_token,
-                refreshToken: body.refresh_token,
-                expires: moment().add(body.expires_in, 'seconds').toDate(),
-            }));
-            process.exit();
-        });
+        getToken(code).then(body => (
+            putObject({
+                Bucket: config.s3.bucket,
+                Key: 'token.json',
+                Body: JSON.stringify({
+                    token: body.access_token,
+                    refreshToken: body.refresh_token,
+                    expires: moment().add(body.expires_in, 'seconds').toDate(),
+                }),
+            })
+        )).then(() => process.exit());
     }
 }).listen(3000);
 
