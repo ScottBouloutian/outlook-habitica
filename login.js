@@ -38,13 +38,13 @@ function getToken(code) {
             grant_type: 'authorization_code',
         }),
         json: true,
-    }).then(({ body }) => body);
+    }).then(response => response.body);
 }
 
 const server = http.createServer((req, resp) => {
     const urlObject = url.parse(req.url, true);
     if (urlObject.pathname === '/') {
-        const { code } = urlObject.query;
+        const code = urlObject.query.code;
         resp.end('Logged in, you may close this window.');
         server.close();
         getToken(code).then(body => (

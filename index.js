@@ -19,7 +19,7 @@ function getTokenInfo() {
     return getObject({
         Bucket: config.s3.bucket,
         Key: 'token.json',
-    }).then(({ Body }) => ld.assign(tokenInfo, JSON.parse(Body)));
+    }).then(body => ld.assign(tokenInfo, JSON.parse(body.Body)));
 }
 
 // Attempts to refresh the access token if it is about to expire
@@ -40,11 +40,11 @@ function refreshToken() {
                 grant_type: 'refresh_token',
             }),
             json: true,
-        }).then(({ body }) => {
+        }).then((response) => {
             ld.assign(tokenInfo, {
-                token: body.access_token,
-                refreshToken: body.refresh_token,
-                expires: moment().add(body.expires_in, 'seconds').toDate(),
+                token: response.body.access_token,
+                refreshToken: response.body.refresh_token,
+                expires: moment().add(response.body.expires_in, 'seconds').toDate(),
             });
             return putObject({
                 Bucket: config.s3.bucket,
@@ -55,35 +55,35 @@ function refreshToken() {
 }
 
 // Template for sending a request to Outlook
-function outlookRequest(endpoint, options = { }) {
+function outlookRequest(endpoint, options) {
     const requestOptions = ld.assign({
         uri: `https://outlook.office.com/api/v2.0${endpoint}`,
         headers: {
             Authorization: `Bearer ${tokenInfo.token}`,
         },
-    }, options);
-    return request(requestOptions).then(({ statusCode, body }) => {
-        if (Math.floor(statusCode / 100) !== 2) {
-            throw new Error(`code ${statusCode}`);
+    }, options || { });
+    return request(requestOptions).then((response) => {
+        if (Math.floor(response.statusCode / 100) !== 2) {
+            throw new Error(`code ${response.statusCode}`);
         }
-        return body;
+        return response.body;
     });
 }
 
 // Template for sending a request to Habitica
-function habiticaRequest(endpoint, options = { }) {
+function habiticaRequest(endpoint, options) {
     const requestOptions = ld.assign({
         uri: `https://habitica.com/api/v3${endpoint}`,
         headers: {
             'x-api-user': config.habitica.user,
             'x-api-key': config.habitica.token,
         },
-    }, options);
-    return request(requestOptions).then(({ statusCode, body }) => {
-        if (Math.floor(statusCode / 100) !== 2) {
-            throw new Error(`code ${statusCode}`);
+    }, options || { });
+    return request(requestOptions).then((response) => {
+        if (Math.floor(response.statusCode / 100) !== 2) {
+            throw new Error(`code ${response.statusCode}`);
         }
-        return body;
+        return response.body;
     });
 }
 
@@ -105,7 +105,7 @@ function getTasks() {
                 },
             })
         ), { concurrency: 2 });
-    }).map(({ value }) => value).reduce((accumulator, item) => accumulator.concat(item), []);
+    }).map(body => body.value).reduce((accumulator, item) => accumulator.concat(item), []);
 }
 
 // Gets the sync records given an array of Outlook task ids
@@ -116,7 +116,7 @@ function getDynamoRecords(ids) {
                 Keys: ids.map(id => ({ id })),
             },
         },
-    }).then(({ Responses }) => Responses['outlook-habitica']);
+    }).then(body => body.Responses['outlook-habitica']);
 }
 
 // Updated the sync records given an array of Outlook tasks and correspondign Habitica tasks
@@ -152,8 +152,8 @@ function syncNewTasks(tasks) {
             method: 'post',
             body: tasks.map(task => mapToHabiticaTask(task)),
             json: true,
-        }).then(({ data }) => {
-            const habiticaTasks = [].concat(data);
+        }).then((body) => {
+            const habiticaTasks = [].concat(body.data);
             return updateDynamoRecords(tasks, habiticaTasks).then(() => habiticaTasks);
         });
 }
@@ -168,7 +168,7 @@ function syncUpdatedTasks(tasks, records) {
                 body: mapToHabiticaTask(tasks[index]),
                 json: true,
             })
-        ), { concurrency: 2 }).map(({ data }) => data).then(habiticaTasks => (
+        ), { concurrency: 2 }).map(body => body.data).then(habiticaTasks => (
             updateDynamoRecords(tasks, habiticaTasks).then(() => habiticaTasks)
         ));
 }
@@ -176,7 +176,7 @@ function syncUpdatedTasks(tasks, records) {
 // Get tasks from Outlook
 getTokenInfo().then(() => refreshToken()).then(() => getTasks()).then((tasks) => {
     // Find tasks that are new or need to be updated in Habitica
-    const outlookIds = tasks.map(({ Id }) => Id);
+    const outlookIds = tasks.map(task => task.Id);
     return getDynamoRecords(outlookIds).then((results) => {
         const newTasks = [];
         const updatedTasks = [];
