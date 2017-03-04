@@ -4,7 +4,6 @@
 
 const Promise = require('bluebird');
 const request = Promise.promisify(require('request'));
-const uuid = require('uuid');
 const configUtils = require('../lib/configUtils');
 const ld = require('lodash');
 
@@ -20,7 +19,6 @@ configUtils.downloadConfig().then(config => (
             Resource: 'https://outlook.office.com/api/v2.0/me/tasks',
             NotificationURL: config.outlook.webhook,
             ChangeType: 'Created, Updated, Deleted',
-            ClientState: uuid(),
         },
     }).then((response) => {
         if (response.statusCode !== 201) {
@@ -29,7 +27,6 @@ configUtils.downloadConfig().then(config => (
         ld.assign(config, {
             subscription: {
                 id: response.body.Id,
-                clientState: response.body.clientState,
                 expires: response.body.SubscriptionExpirationDateTime,
             },
         });
