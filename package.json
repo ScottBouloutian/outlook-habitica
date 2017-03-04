@@ -4,9 +4,10 @@
   "description": "Script to update Habitica with tasks from Outlook",
   "main": "index.js",
   "scripts": {
-      "login": "node scripts/login",
-      "subscribe": "node scripts/subscribe",
-      "build": "sh scripts/lambda-build.sh"
+    "login": "node scripts/login",
+    "subscribe": "node scripts/subscribe",
+    "build": "sh scripts/lambda-build.sh",
+    "test": "tape tests/**/*.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,9 @@
   "devDependencies": {
     "eslint": "^3.16.1",
     "eslint-config-airbnb-base": "^11.1.0",
-    "eslint-plugin-import": "^2.2.0"
+    "eslint-plugin-import": "^2.2.0",
+    "faker": "^4.1.0",
+    "sinon": "^1.17.7",
+    "tape": "^4.6.3"
   }
 }
