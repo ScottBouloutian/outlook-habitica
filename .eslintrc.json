@@ -11,6 +11,7 @@
         "indent": ["error", 4],
         "no-console": "off",
         "node/exports-style": ["error", "module.exports"],
-        "strict": "off"
+        "strict": "off",
+        "no-process-exit": "off"
     }
 }

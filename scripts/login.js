@@ -62,9 +62,7 @@ configUtils.downloadConfig().then((config) => {
                     },
                 });
                 return configUtils.uploadConfig(config);
-            }).then(() => {
-                throw new Error();
-            });
+            }).then(() => process.exit());
         }
     }).listen(3000);
 

@@ -10,8 +10,7 @@
     "login": "node scripts/login",
     "subscribe": "node scripts/subscribe",
     "build": "sh scripts/lambda-build.sh",
-    "lint": "eslint **/*.js",
-    "test": "tape tests/**/*.js"
+    "lint": "eslint **/*.js"
   },
   "repository": {
     "type": "git",

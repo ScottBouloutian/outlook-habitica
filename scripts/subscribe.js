@@ -27,10 +27,7 @@ configUtils.downloadConfig().then(config => (
             throw new Error(`code ${response.statusCode}`);
         }
         ld.assign(config, {
-            subscription: {
-                id: response.body.Id,
-                expires: response.body.SubscriptionExpirationDateTime,
-            },
+            subscription: { id: response.body.Id },
         });
         return configUtils.uploadConfig(config);
     })
