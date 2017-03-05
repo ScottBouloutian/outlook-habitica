@@ -3,13 +3,14 @@
     The access token is then saved to S3 for access by other services.
  */
 
+'use strict';
+
 const url = require('url');
 const spawn = require('child_process').spawn;
 const http = require('http');
 const Promise = require('bluebird');
 const request = Promise.promisify(require('request'));
 const querystring = require('querystring');
-const moment = require('moment');
 const configUtils = require('../lib/configUtils');
 const ld = require('lodash');
 
@@ -58,11 +59,12 @@ configUtils.downloadConfig().then((config) => {
                     tokenInfo: {
                         token: body.access_token,
                         refreshToken: body.refresh_token,
-                        expires: moment().add(body.expires_in, 'seconds').toDate(),
                     },
                 });
                 return configUtils.uploadConfig(config);
-            }).then(() => process.exit());
+            }).then(() => {
+                throw new Error();
+            });
         }
     }).listen(3000);
 

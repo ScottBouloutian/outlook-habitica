@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "Script to update Habitica with tasks from Outlook",
   "main": "index.js",
+  "engines": {
+    "node": "v4.3"
+  },
   "scripts": {
     "login": "node scripts/login",
     "subscribe": "node scripts/subscribe",
     "build": "sh scripts/lambda-build.sh",
+    "lint": "eslint **/*.js",
     "test": "tape tests/**/*.js"
   },
   "repository": {
@@ -30,8 +34,6 @@
     "eslint": "^3.16.1",
     "eslint-config-airbnb-base": "^11.1.0",
     "eslint-plugin-import": "^2.2.0",
-    "faker": "^4.1.0",
-    "sinon": "^1.17.7",
-    "tape": "^4.6.3"
+    "eslint-plugin-node": "^4.1.0"
   }
 }

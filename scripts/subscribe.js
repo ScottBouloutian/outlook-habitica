@@ -2,6 +2,8 @@
     This script sends a subscription request to enable a webhook for Outlook.
  */
 
+'use strict';
+
 const Promise = require('bluebird');
 const request = Promise.promisify(require('request'));
 const configUtils = require('../lib/configUtils');
