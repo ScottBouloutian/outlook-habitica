@@ -1,6 +1,8 @@
 const configUtils = require('./lib/configUtils');
 const ld = require('lodash');
 const Outlook = require('./lib/Outlook');
+const TaskEngine = require('./lib/TaskEngine');
+const Promise = require('bluebird');
 
 module.exports = {
     refreshToken() {
@@ -40,5 +42,26 @@ module.exports = {
         })
         .then(() => console.log('The subscription has been renewed'))
         .catch(error => console.error(error));
+    },
+
+    outlookWebhook(event, context, callback) {
+        // Log the event
+        console.log(event);
+
+        // Validate the subscription request
+        const query = event.params.querystring;
+        if ('validationtoken' in query) {
+            console.log('Validating the subscription request');
+            callback(null, query.validationtoken);
+            return Promise.resolve();
+        }
+
+        // Handle the notification
+        const notifications = event['body-json'].value;
+        return configUtils.downloadConfig().then((config) => {
+            const taskEngine = new TaskEngine(config);
+            return Promise.map(notifications, notification =>
+                taskEngine.handleOutlookNotification(notification));
+        }).then(() => callback(null));
     },
 };
