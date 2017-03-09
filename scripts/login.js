@@ -43,7 +43,7 @@ configUtils.downloadConfig().then((config) => {
             client_id: config.outlook.clientId,
             redirect_uri: 'http://localhost:3000',
             response_type: 'code',
-            scope: 'offline_access https://outlook.office.com/tasks.read',
+            scope: 'offline_access https://outlook.office.com/tasks.readwrite',
         },
     });
 

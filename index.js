@@ -64,4 +64,15 @@ module.exports = {
                 taskEngine.handleOutlookNotification(notification));
         }).then(() => callback(null));
     },
+
+    habiticaWebhook(event, context, callback) {
+        // Log the event
+        console.log(event);
+
+        // Handle the notification
+        return configUtils.downloadConfig().then((config) => {
+            const taskEngine = new TaskEngine(config);
+            return taskEngine.handleHabiticaNotification(event);
+        }).then(() => callback(null));
+    },
 };
