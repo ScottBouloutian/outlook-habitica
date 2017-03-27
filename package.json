@@ -4,7 +4,7 @@
   "description": "Script to update Habitica with tasks from Outlook",
   "main": "index.js",
   "engines": {
-    "node": "v4.3"
+    "node": "v6.10.0"
   },
   "scripts": {
     "build": "sh scripts/lambda-build.sh",
